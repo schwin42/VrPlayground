@@ -16,7 +16,12 @@ public class destruction : MonoBehaviour {
 	public bool AutoDestroy = true; //if true, then object will be automatically break after after "AutoDestTime" since game start.
 	public float AutoDestTime = 2; //Auto destruction time (counts from game start).
 
+	public int weaponLayer;
+
+
 	void Start () {
+
+		weaponLayer = LayerMask.NameToLayer("Weapon");
 
 		if(AutoDestroy){
 			Invoke("Crushing", AutoDestTime);
@@ -33,13 +38,8 @@ public class destruction : MonoBehaviour {
 	}
 
 	void OnCollisionEnter(Collision other){
-		if(other.gameObject.GetComponent<BulletsDamage>()){
-		Health -= other.gameObject.GetComponent<BulletsDamage>().Damage;
-			if(Health <= 0){
-				Crushing();
-				}
-		}
-		else if(other.relativeVelocity.magnitude > strength){
+		if(other.collider.gameObject.layer == weaponLayer) {
+//		if(other.gameObject.GetComponent<BulletsDamage>()){
 			Crushing();
 		}
 
