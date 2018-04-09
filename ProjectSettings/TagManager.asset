@@ -8,6 +8,7 @@ TagManager:
   - Bullet02
   - Bullet01
   - Bullet03
+  - Tracker
   layers:
   - Default
   - TransparentFX
