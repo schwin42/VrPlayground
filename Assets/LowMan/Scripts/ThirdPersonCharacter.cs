@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 namespace UnityStandardAssets.Characters.ThirdPerson
 {
@@ -7,6 +8,8 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 	[RequireComponent(typeof(Animator))]
 	public class ThirdPersonCharacter : MonoBehaviour
 	{
+		static LayerMask ALL_BUT_CHARACTERS;
+
 		[SerializeField] float m_MovingTurnSpeed = 360;
 		[SerializeField] float m_StationaryTurnSpeed = 180;
 		[SerializeField] float m_JumpPower = 6f;
@@ -28,6 +31,8 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 		Vector3 m_CapsuleCenter;
 		CapsuleCollider m_Capsule;
 		bool m_Crouching;
+		bool m_Attacking;
+
 
 
 		void Start()
@@ -40,8 +45,13 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 
 			m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
 			m_OrigGroundCheckDistance = m_GroundCheckDistance;
-		}
 
+			ALL_BUT_CHARACTERS = ~ (1 << (LayerMask.NameToLayer ("Character")));
+		}
+			
+		public void Attack() {
+			m_Attacking = true;
+		}
 
 		public void Move(Vector3 move, bool crouch, bool jump)
 		{
@@ -65,6 +75,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 			}
 			else
 			{
+				print ("Handling airborne movement");
 				HandleAirborneMovement();
 			}
 
@@ -83,14 +94,17 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 				if (m_Crouching) return;
 				m_Capsule.height = m_Capsule.height / 2f;
 				m_Capsule.center = m_Capsule.center / 2f;
+				print ("scale capsule for crouching");
 				m_Crouching = true;
 			}
 			else
 			{
 				Ray crouchRay = new Ray(m_Rigidbody.position + Vector3.up * m_Capsule.radius * k_Half, Vector3.up);
 				float crouchRayLength = m_CapsuleHeight - m_Capsule.radius * k_Half;
-				if (Physics.SphereCast(crouchRay, m_Capsule.radius * k_Half, crouchRayLength, Physics.AllLayers, QueryTriggerInteraction.Ignore))
+				RaycastHit hit;
+				if (Physics.SphereCast(crouchRay, m_Capsule.radius * k_Half, out hit, crouchRayLength, ALL_BUT_CHARACTERS, QueryTriggerInteraction.Ignore))
 				{
+					print ("Sphere cast: " + LayerMask.LayerToName(hit.collider.gameObject.layer));
 					m_Crouching = true;
 					return;
 				}
@@ -107,8 +121,9 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 			{
 				Ray crouchRay = new Ray(m_Rigidbody.position + Vector3.up * m_Capsule.radius * k_Half, Vector3.up);
 				float crouchRayLength = m_CapsuleHeight - m_Capsule.radius * k_Half;
-				if (Physics.SphereCast(crouchRay, m_Capsule.radius * k_Half, crouchRayLength, Physics.AllLayers, QueryTriggerInteraction.Ignore))
+				if (Physics.SphereCast(crouchRay, m_Capsule.radius * k_Half, crouchRayLength, ALL_BUT_CHARACTERS, QueryTriggerInteraction.Ignore))
 				{
+					print ("preventing standing in low headroom");
 					m_Crouching = true;
 				}
 			}
@@ -122,6 +137,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 			m_Animator.SetFloat("Turn", m_TurnAmount, 0.1f, Time.deltaTime);
 			m_Animator.SetBool("Crouch", m_Crouching);
 			m_Animator.SetBool("OnGround", m_IsGrounded);
+			m_Animator.SetBool ("Attack", m_Attacking);
 			if (!m_IsGrounded)
 			{
 				m_Animator.SetFloat("Jump", m_Rigidbody.velocity.y);

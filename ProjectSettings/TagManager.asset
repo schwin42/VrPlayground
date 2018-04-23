@@ -9,6 +9,8 @@ TagManager:
   - Bullet01
   - Bullet03
   - Tracker
+  - FxTemporaire
+  - projectile
   layers:
   - Default
   - TransparentFX
@@ -19,8 +21,8 @@ TagManager:
   - 
   - 
   - Weapon
-  - 
-  - 
+  - Character
+  - Sensor
   - 
   - 
   - 
